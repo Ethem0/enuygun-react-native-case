@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { FavoriteButton } from '../components/FavoriteButton';
 import type { RootStackParamList } from '../navigation/navigation.types';
+import { useFavoritesStore } from '../stores/favoritesStore';
 import { useFlightListStore } from '../stores/flightListStore';
 import { formatBaggage } from '../utils/formatBaggage';
 import { formatFlightDate, formatFlightTime } from '../utils/formatDate';
@@ -16,9 +17,18 @@ type FlightDetailScreenProps = NativeStackScreenProps<
 >;
 
 export function FlightDetailScreen({ route }: FlightDetailScreenProps) {
-  const flight = useFlightListStore((state) =>
+  const listFlight = useFlightListStore((state) =>
     state.items.find((item) => item.id === route.params.flightId),
   );
+  const favoriteFlight = useFavoritesStore(
+    (state) => state.flightsById[route.params.flightId],
+  );
+  const isFavorite = useFavoritesStore((state) =>
+    state.favoriteIds.includes(route.params.flightId),
+  );
+  const hydrated = useFavoritesStore((state) => state.hydrated);
+  const toggleFavorite = useFavoritesStore((state) => state.toggleFavorite);
+  const flight = listFlight ?? favoriteFlight;
 
   if (flight === undefined) {
     return (
@@ -47,7 +57,11 @@ export function FlightDetailScreen({ route }: FlightDetailScreenProps) {
             </Text>
             <Text style={styles.flightNumber}>{flight.flightNumber}</Text>
           </View>
-          <FavoriteButton />
+          <FavoriteButton
+            disabled={!hydrated}
+            isFavorite={isFavorite}
+            onPress={() => void toggleFavorite(flight.id)}
+          />
         </View>
 
         <View style={styles.routeCard}>

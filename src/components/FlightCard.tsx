@@ -5,6 +5,7 @@ import { formatDuration } from '../utils/formatDuration';
 import { formatFlightTime } from '../utils/formatDate';
 import { formatPrice } from '../utils/formatPrice';
 import { FavoriteButton } from './FavoriteButton';
+import { useFavoritesStore } from '../stores/favoritesStore';
 
 type FlightCardProps = {
   flight: FlightDto;
@@ -13,6 +14,11 @@ type FlightCardProps = {
 
 export function FlightCard({ flight, onPress }: FlightCardProps) {
   const stopsLabel = flight.stops === 0 ? 'Direkt' : '1 aktarma';
+  const isFavorite = useFavoritesStore((state) =>
+    state.favoriteIds.includes(flight.id),
+  );
+  const hydrated = useFavoritesStore((state) => state.hydrated);
+  const toggleFavorite = useFavoritesStore((state) => state.toggleFavorite);
 
   return (
     <View style={styles.card}>
@@ -45,7 +51,11 @@ export function FlightCard({ flight, onPress }: FlightCardProps) {
           <Text style={styles.price}>{formatPrice(flight.priceMinor)}</Text>
         </Pressable>
 
-        <FavoriteButton />
+        <FavoriteButton
+          disabled={!hydrated}
+          isFavorite={isFavorite}
+          onPress={() => void toggleFavorite(flight.id)}
+        />
       </View>
     </View>
   );
